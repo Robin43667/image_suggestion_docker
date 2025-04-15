@@ -1,0 +1,94 @@
+services:
+  mariadb:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: imageDB
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - app_network
+
+  phpmyadmin:
+    image: phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+    ports:
+      - "8080:80"
+    networks:
+      - app_network
+
+  data-analyzer:
+    build: ./data-analyzer
+    depends_on:
+      - mariadb
+    ports:
+      - "5003:5003"
+    volumes:
+      - shared-images:/app/images
+    networks:
+      - app_network
+
+  user-profiler:
+    build: ./user-profiler
+    depends_on:
+      - mariadb
+    networks:
+      - app_network
+
+  image-recommender:
+    build: ./image-recommender
+    depends_on:
+      - user-profiler
+      - data-analyzer
+    networks:
+      - app_network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - data-collector-1
+      - data-collector-2
+      - manager
+      - data-analyzer
+    networks:
+      - app_network
+
+  data-collector-1:
+    build: ./data-collector
+    ports:
+      - "5001:5001"
+    volumes:
+      - shared-images:/app/images
+    networks:
+      - app_network
+
+  data-collector-2:
+    build: ./data-collector
+    ports:
+      - "5002:5001"
+    volumes:
+      - shared-images:/app/images
+    networks:
+      - app_network
+
+  manager:
+    build: ./manager
+    ports:
+      - "5000:5000"
+    networks:
+      - app_network
+
+volumes:
+  db_data:
+  shared-images:
+
+networks:
+  app_network:
+    driver: bridge

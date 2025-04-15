@@ -1,0 +1,10 @@
+jupyter
+requests
+Pillow
+exifread
+scikit-learn
+matplotlib
+opencv-python
+ipython
+wordcloud
+seaborn

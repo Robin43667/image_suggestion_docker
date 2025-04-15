@@ -1,0 +1,6 @@
+flask
+mysql-connector-python
+opencv-python-headless 
+pillow 
+exifread 
+scikit-learn
