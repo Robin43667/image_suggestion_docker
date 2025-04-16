@@ -1,3 +1,5 @@
+# DATA ANALYZER
+
 from flask import Flask, jsonify
 import os
 import cv2
@@ -15,7 +17,7 @@ DB_USER = "root"
 DB_PASSWORD = "root"
 DB_NAME = "imageDB"
 
-IMAGE_FOLDER = "./images"
+IMAGE_FOLDER = "/app/images/"
 
 # Connexion
 def get_db_connection():

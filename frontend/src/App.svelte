@@ -1,88 +1,85 @@
+<!-- App.svelte -->
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import { onMount } from 'svelte';
+  import { imageStore, type ImageStoreState } from './stores/imageStore';
+  import ImageViewer from './components/ImageViewer.svelte';
+  import LikedImages from './components/LikedImages.svelte';
+  import LikedCount from './components/LikedCount.svelte';
+  import Message from './components/Message.svelte';
+  import DataActions from './components/DataActions.svelte'; 
 
-  let isCollecting = false;
-  let isAnalyzing = false;
+  let storeValue: ImageStoreState;
 
-  async function startCollection() {
-    isCollecting = true;
-    try {
-      const response = await fetch("/start_collection");
-      const result = await response.json();
-      console.log("Réponse complète:", result);
-      if (result.message) {
-        alert(result.message);
-      } else {
-        alert("Réponse inattendue : " + JSON.stringify(result));
-      }
-    } catch (error) {
-      console.error("Erreur lors du fetch :", error);
-      alert("Erreur lors du démarrage de la collecte");
-    }
-    isCollecting = false;
-  }
+  imageStore.subscribe(value => {
+    storeValue = value;
+  });
 
-  async function startAnalysis() {
-    isAnalyzing = true;
-    try {
-      const response = await fetch("/analyze");
-      const result = await response.json();
-      console.log("Résultat de l'analyse :", result);
-      if (result.message) {
-        alert(result.message);
-      } else {
-        alert("Réponse inattendue : " + JSON.stringify(result));
-      }
-    } catch (error) {
-      console.error("Erreur lors de l'analyse :", error);
-      alert("Erreur lors du lancement de l'analyse");
-    }
-    isAnalyzing = false;
-  }
+  onMount(() => {
+    imageStore.fetchImages();
+  });
+
+  $: hasMoreImages = storeValue.currentIndex < storeValue.images.length;
+  $: currentImage = hasMoreImages ? storeValue.images[storeValue.currentIndex] : null;
 </script>
 
-<main>
-  <section class="collect">
-    <h2>Collecte des données</h2>
-    <button on:click={startCollection} disabled={isCollecting}>
-      {isCollecting ? "Collecte en cours..." : "Démarrer la collecte"}
-    </button>
-    <br /><br />
-    <button on:click={startAnalysis} disabled={isAnalyzing}>
-      {isAnalyzing ? "Analyse en cours..." : "Lancer l'analyse"}
-    </button>
-  </section>
-</main>
+<section class="image-recommender">
+  <h2>Recommendation d'Images</h2>
+
+  <input
+  type="text"
+  placeholder="Entrez votre nom d'utilisateur"
+  bind:value={storeValue.username}
+  on:input={(e) => imageStore.setUsername((e.target as HTMLInputElement).value)}
+  class="username-input"
+/>
+
+
+  <DataActions /> 
+
+  {#if storeValue.isLoading}
+    <p>Chargement des images...</p>
+  {:else if !hasMoreImages}
+    <div class="results">
+      <p>Aucune image supplémentaire à afficher</p>
+      {#if storeValue.likedImages.length > 0}
+        <LikedImages 
+          likedImages={storeValue.likedImages.map(img => img.filename)}
+          onSend={imageStore.sendPreferences}
+          onReset={imageStore.resetSelection}
+          onReload={imageStore.fetchImages}
+          isSending={storeValue.isSending}
+        />
+      {/if}
+    </div>
+  {:else}
+    <ImageViewer 
+      currentImage={currentImage}
+      currentIndex={storeValue.currentIndex}
+      totalImages={storeValue.images.length}
+      onLike={imageStore.likeImage}
+      onSkip={imageStore.skipImage}
+    />
+    
+    {#if storeValue.likedImages.length > 0}
+      <LikedCount 
+        count={storeValue.likedImages.length}
+        onSend={imageStore.sendPreferences}
+        isSending={storeValue.isSending}
+      />
+    {/if}
+  {/if}
+
+  <Message message={storeValue.resultMessage} />
+</section>
 
 <style>
-  .collect {
-    margin-top: 2rem;
-    text-align: center;
-  }
-
-  button {
-    background-color: #646cff;
-    border: none;
-    padding: 0.8em 1.5em;
+  .username-input {
+    margin: 1rem 0;
+    padding: 0.5rem;
     font-size: 1rem;
-    color: white;
-    border-radius: 0.5em;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-
-  button:disabled {
-    background-color: #888;
-    cursor: not-allowed;
-  }
-
-  button:hover:not(:disabled) {
-    background-color: #4e52d1;
-  }
-
-  button + button {
-    margin-top: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 300px;
   }
 </style>

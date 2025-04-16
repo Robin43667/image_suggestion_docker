@@ -1,3 +1,5 @@
+# DATA COLLECTOR
+
 from flask import Flask, request, jsonify
 import os
 import requests
@@ -34,7 +36,7 @@ def collect():
     data = request.get_json()
     urls = data.get("urls", [])
     prefix = data.get("prefix", "img")
-    dossier_telechargement = "./dataset/"
+    dossier_telechargement = "/app/images/"
 
     os.makedirs(dossier_telechargement, exist_ok=True)
 

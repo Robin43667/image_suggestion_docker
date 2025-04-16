@@ -35,6 +35,10 @@ services:
     build: ./user-profiler
     depends_on:
       - mariadb
+    ports:
+      - "5004:5004"
+    volumes:
+      - shared-images:/app/images
     networks:
       - app_network
 
@@ -82,6 +86,8 @@ services:
     build: ./manager
     ports:
       - "5000:5000"
+    volumes:
+      - shared-images:/app/images
     networks:
       - app_network
 

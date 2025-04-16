@@ -1,3 +1,4 @@
-scikit-learn
+Flask
+mysql-connector-python
 numpy
-flask
+scikit-learn
