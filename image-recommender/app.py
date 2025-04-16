@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import mysql.connector
 from mysql.connector import Error
 import numpy as np
-from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.linear_model import Perceptron
 import json
 import logging
 
@@ -27,7 +27,7 @@ def load_profiles():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT username, avg_width, avg_height, avg_colors FROM profiles")
+        cursor.execute("SELECT username, avg_colors FROM profiles")
         profiles = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -40,7 +40,7 @@ def load_images_metadata():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT filename, width, height, colors FROM files")
+        cursor.execute("SELECT filename, colors FROM files")
         metadata = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -49,31 +49,51 @@ def load_images_metadata():
         logging.error(f"Erreur chargement métadonnées images : {e}")
         return []
 
+def flatten_colors(colors):
+    """Transforme une liste de couleurs RGB [[r,g,b], ...] en un seul vecteur 1D"""
+    flat = np.array(colors).flatten()
+    if len(flat) < 15:  # 5 couleurs * 3 composantes = 15
+        flat = np.pad(flat, (0, 15 - len(flat)), 'constant')
+    elif len(flat) > 15:
+        flat = flat[:15]
+    return flat
+
 def recommend_images_for_user(profile, images_metadata):
-    top_colors = json.loads(profile["avg_colors"])
-    top_colors_array = np.array(top_colors)
+    try:
+        top_colors = json.loads(profile["avg_colors"])
+        X_train = []
+        y_train = []
 
-    if top_colors_array.shape[0] < 5:
-        top_colors_array = np.tile(top_colors_array, (5 // len(top_colors), 1))[:5]
-    elif top_colors_array.shape[0] > 5:
-        top_colors_array = top_colors_array[:5]
+        # On crée un vecteur d'entraînement "positif" basé sur le profil
+        profile_vector = flatten_colors(top_colors)
+        X_train.append(profile_vector)
+        y_train.append(1)  # classe positive : correspond au profil
 
-    recommendations = []
+        # Ajout d’un vecteur "négatif" bidon pour permettre apprentissage minimal
+        X_train.append(np.random.rand(15))  # bruit
+        y_train.append(0)
 
-    for image in images_metadata:
-        image_colors = json.loads(image["colors"])
-        if not image_colors:
-            continue
-        image_color_array = np.array(image_colors)
-        distances = euclidean_distances(image_color_array, top_colors_array)
-        score = np.mean(distances)
-        recommendations.append((image["filename"], score))
+        clf = Perceptron(max_iter=1000, tol=1e-3)
+        clf.fit(X_train, y_train)
 
-    recommendations.sort(key=lambda x: x[1])
-    top_filenames = [filename for filename, _ in recommendations[:5]]
+        scores = []
 
-    logging.info(f"[{profile['username']}] Recommandations : {top_filenames}")
-    return top_filenames
+        for image in images_metadata:
+            image_colors = json.loads(image["colors"])
+            if not image_colors:
+                continue
+            image_vector = flatten_colors(image_colors)
+            score = clf.decision_function([image_vector])[0]
+            scores.append((image["filename"], score))
+
+        scores.sort(key=lambda x: x[1], reverse=True)
+        top_filenames = [filename for filename, _ in scores[:5]]
+
+        logging.info(f"[{profile['username']}] Recommandations : {top_filenames}")
+        return top_filenames
+    except Exception as e:
+        logging.error(f"Erreur dans recommend_images_for_user : {e}")
+        return []
 
 @app.route("/recommend", methods=["GET"])
 def recommend():
