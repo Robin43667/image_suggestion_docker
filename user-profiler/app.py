@@ -3,8 +3,6 @@ import logging
 import mysql.connector
 import json
 from collections import Counter
-import os
-import hashlib
 
 app = Flask(__name__)
 
@@ -125,6 +123,18 @@ def profile_user():
         conn.commit()
 
         logger.info(f"Profil enregistré pour {username}")
+
+        # Mise à jour de l'utilisateur : set calibrated = 1
+        cursor.execute("""
+            UPDATE users
+            SET calibrated = 1
+            WHERE username = %s
+        """, (username,))
+        if cursor.rowcount == 0:
+            logger.warning(f"Aucun utilisateur trouvé avec le username {username} pour mise à jour de calibrated")
+        else:
+            logger.info(f"Champ calibrated mis à jour pour {username}")
+        conn.commit()
 
         return jsonify({
             "status": "success",

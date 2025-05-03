@@ -8,43 +8,6 @@
 <button {type} {disabled} class="button" on:click>
 	<slot></slot>
 </button>
-<!-- 
-<style>
-	.button {
-		width: 100%;
-		padding: 0.875rem 1.5rem;
-		background: linear-gradient(90deg, #6e8efb, #a777e3);
-		color: white;
-		border: none;
-		border-radius: 6px;
-		font-size: 1rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: transform 0.2s, box-shadow 0.2s;
-		outline: none;
-	}
-
-    .button:focus-visible {
-        outline: 2px solid #a777e3;
-        outline-offset: 2px;
-    }
-	
-	.button:hover:not(:disabled) {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(110, 142, 251, 0.4);
-	}
-	
-	.button:active:not(:disabled) {
-		transform: translateY(0);
-		box-shadow: 0 2px 6px rgba(110, 142, 251, 0.4);
-	}
-	
-	.button:disabled {
-		opacity: 0.7;
-		cursor: not-allowed;
-	}
-</style> -->
-
 
 <style>
 	.button {

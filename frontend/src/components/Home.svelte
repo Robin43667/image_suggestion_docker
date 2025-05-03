@@ -1,31 +1,69 @@
 <!-- components/Home.svelte -->
-
-<script>
+<script lang="ts">
 	import Card from './ui/Card.svelte';
 	import Button from './ui/Button.svelte';
+	import ImageViewer from './ImageViewer.svelte';
+	import Message from './Message.svelte';
 
-	export let username;
-	export let calibrated;
+	import { imageStore } from '../stores/imageStore';
+	import { onDestroy } from 'svelte';
 
-	function noop() {
-		// Placeholder pour les boutons pas encore implémentés
-	}
+	export let username: string;
+	export let calibrated: boolean;
 
-	// Texte conditionnel en fonction du profil calibré ou non
+	let isCalibrating = false;
+
+	let unsubscribe = imageStore.subscribe(() => {});
+	onDestroy(unsubscribe);
+
 	$: headerText = calibrated 
 		? "Votre profil est calibré, vous pouvez continuer"
 		: "Calibrez votre profil pour continuer";
-
 	$: buttonText = calibrated ? "Reprendre" : "Calibrer";
+
+	function startCalibration() {
+		isCalibrating = true;
+		imageStore.setUsername(username);
+		imageStore.fetchImages();
+	}
+
+	const likeImage = () => imageStore.likeImage();
+	const skipImage = () => imageStore.skipImage();
+	const sendPreferences = () => imageStore.sendPreferences();
 </script>
 
 <main class="main-content">
-	<Card>
-		<h1>{headerText}</h1>
-		<Button on:click={noop} class="start-button">{buttonText}</Button>
-	</Card>        
+	{#if !isCalibrating}
+		<Card>
+			<h1>{headerText}</h1>
+			<Button on:click={startCalibration} class="start-button">{buttonText}</Button>
+		</Card>
+	{:else}
+		{#if $imageStore.isLoading}
+			<p>Chargement des images...</p>
+		{:else}
+            {#if $imageStore.images.length > 0 && $imageStore.currentIndex < $imageStore.images.length}
+                <ImageViewer
+                    currentImage={$imageStore.images[$imageStore.currentIndex]}
+                    currentIndex={$imageStore.currentIndex}
+                    totalImages={$imageStore.images.length}
+                    onLike={likeImage}
+                    onSkip={skipImage}
+                />
+            {:else}
+                <p>Vous avez parcouru toutes les images.</p>
+                <Button 
+                    on:click={sendPreferences} 
+                    class="send-preferences-button"
+                    disabled={$imageStore.isSending}>
+                    { $imageStore.isSending ? "Envoi en cours..." : "Envoyer les préférences" }
+                </Button>
+            {/if}
+    
+			<Message message={$imageStore.resultMessage} />
+		{/if}
+	{/if}
 </main>
-
 
 <style>
     .main-content {
@@ -37,6 +75,7 @@
         margin: 0 auto;
         max-width: 50%;
         height: 100%;
+        flex-direction: column;
     }
 
     h1 {
