@@ -23,7 +23,7 @@ def get_db_connection():
         database=DB_NAME
     )
 
-def load_profiles():
+def load_profiles():    
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)

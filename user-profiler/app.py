@@ -3,6 +3,8 @@ import logging
 import mysql.connector
 import json
 from collections import Counter
+import os
+import hashlib
 
 app = Flask(__name__)
 

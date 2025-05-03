@@ -5,6 +5,10 @@ import os
 import requests
 import random
 import base64
+import logging
+import mysql.connector
+import os
+import hashlib
 
 app = Flask(__name__)
 
@@ -23,6 +27,127 @@ WHERE {
 }
 LIMIT 100
 """
+
+
+
+
+
+logger = logging.getLogger(__name__)
+
+# DB config
+DB_HOST = "mariadb"
+DB_USER = "root"
+DB_PASSWORD = "root"
+DB_NAME = "imageDB"
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME
+    )
+
+
+def create_users_table():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) UNIQUE,
+                password VARCHAR(255),
+                calibrated BOOLEAN DEFAULT FALSE
+            )
+        """)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        logger.info("Table users vérifiée/créée avec succès")
+    except Exception as e:
+        logger.error(f"Erreur lors de la création de la table users : {e}")
+
+
+def hash_password(password):
+    salt = os.urandom(32)
+    key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    return salt.hex() + ':' + key.hex()
+
+def verify_password(stored_password, provided_password):
+    salt_hex, key_hex = stored_password.split(':')
+    salt = bytes.fromhex(salt_hex)
+    stored_key = bytes.fromhex(key_hex)
+    new_key = hashlib.pbkdf2_hmac('sha256', provided_password.encode('utf-8'), salt, 100000)
+    return new_key == stored_key
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+    
+    if not username or not password:
+        return jsonify({"status": "error", "message": "Username et password requis"}), 400
+    
+    try:
+        create_users_table()
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT username FROM users WHERE username = %s", (username,))
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({"status": "error", "message": "Username déjà utilisé"}), 400
+        
+        hashed_password = hash_password(password)
+        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", 
+                      (username, hashed_password))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({"status": "success", "message": "Utilisateur créé avec succès"}), 201
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de l'enregistrement : {e}")
+        return jsonify({"status": "error", "message": "Erreur serveur"}), 500
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+    
+    if not username or not password:
+        return jsonify({"status": "error", "message": "Username et password requis"}), 400
+    
+    try:
+        create_users_table()
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT username, password, calibrated FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if not user or not verify_password(user[1], password):
+            return jsonify({"status": "error", "message": "Identifiants invalides"}), 401
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Connexion réussie",
+            "user": {
+                "username": user[0],
+                "calibrated": bool(user[2])  # On force à booléen Python
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la connexion : {e}")
+        return jsonify({"status": "error", "message": "Erreur serveur"}), 500
 
 def fetch_image_urls():
     try:
