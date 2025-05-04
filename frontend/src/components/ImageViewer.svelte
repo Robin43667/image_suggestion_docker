@@ -27,7 +27,7 @@
     </div>
   
   {/if}
-  
+
   
   <style>
     .image-wrapper {

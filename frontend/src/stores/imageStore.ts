@@ -16,6 +16,8 @@ export interface ImageStoreState {
     isSending: boolean;
     resultMessage: string;
     username: string;
+    calibrated: boolean;
+
 }
 
 function createImageStore() {
@@ -27,6 +29,7 @@ function createImageStore() {
         isSending: false,
         resultMessage: '',
         username: '',
+        calibrated: false
     });
 
     const self = {
@@ -83,7 +86,11 @@ function createImageStore() {
                 }));
             }
         },        
-        likeImage: () => {
+        likeImage: async () => {
+            let calibrated = false;
+            const unsubscribe = self.subscribe(state => { calibrated = state.calibrated; });
+            unsubscribe();
+        
             update(state => {
                 if (state.currentIndex < state.images.length) {
                     return {
@@ -94,8 +101,18 @@ function createImageStore() {
                 }
                 return state;
             });
+        
+            if (calibrated) {
+                await self.sendPreferences(); // envoie auto
+                await self.fetchRecommendedImages(); // récup reco auto
+            }
         },
-        skipImage: () => {
+        
+        skipImage: async () => {
+            let calibrated = false;
+            const unsubscribe = self.subscribe(state => { calibrated = state.calibrated; });
+            unsubscribe();
+        
             update(state => {
                 if (state.currentIndex < state.images.length) {
                     return {
@@ -105,19 +122,27 @@ function createImageStore() {
                 }
                 return state;
             });
+        
+            if (calibrated) {
+                await self.sendPreferences();
+                await self.fetchRecommendedImages();
+            }
         },
+        
         setUsername: (name: string) => {
             update(state => ({ ...state, username: name }));
           },
+          setCalibrated: (status: boolean) => {
+            update(state => ({ ...state, calibrated: status }));
+        },
         
-          fetchRecommendedImages: async () => {
+        
+        fetchRecommendedImages: async () => {
             let currentUsername = '';
-            
-            // Lire la valeur actuelle du store (sans réactivité)
             const unsubscribe = self.subscribe(state => {
                 currentUsername = state.username;
             });
-            unsubscribe(); // On désabonne tout de suite après avoir lu
+            unsubscribe();
         
             update(state => ({ ...state, isLoading: true, resultMessage: '' }));
             try {
@@ -125,12 +150,15 @@ function createImageStore() {
                 if (data.recommendation) {
                     update(state => ({
                         ...state,
-                        images: [data.recommendation],  // on l'encapsule dans un tableau
+                        images: [data.recommendation],
+                        currentIndex: 0,
                         isLoading: false
                     }));
                 } else {
                     update(state => ({
                         ...state,
+                        images: [],
+                        currentIndex: 0,
                         isLoading: false,
                         resultMessage: 'Aucune image recommandée disponible'
                     }));
@@ -139,6 +167,8 @@ function createImageStore() {
                 console.error('Erreur lors de la récupération des recommandations:', error);
                 update(state => ({
                     ...state,
+                    images: [],
+                    currentIndex: 0,
                     isLoading: false,
                     resultMessage: 'Erreur lors du chargement des recommandations'
                 }));

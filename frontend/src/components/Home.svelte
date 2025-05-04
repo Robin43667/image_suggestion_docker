@@ -20,28 +20,30 @@
 		? "Votre profil est calibré, vous pouvez continuer"
 		: "Calibrez votre profil pour continuer";
 	$: buttonText = calibrated ? "Reprendre" : "Calibrer";
-
     function startCalibration() {
-        isCalibrating = true;
-        imageStore.setUsername(username);
+    isCalibrating = true;
+    imageStore.setUsername(username);
+    imageStore.setCalibrated(calibrated); // Ajout important
 
-        if (calibrated) {
-            imageStore.fetchRecommendedImages();
-        } else {
-            imageStore.fetchCalibrationImages();
-        }
+    if (calibrated) {
+        imageStore.fetchRecommendedImages();
+    } else {
+        imageStore.fetchCalibrationImages();
     }
+}
 
 
 	const likeImage = () => imageStore.likeImage();
 	const skipImage = () => imageStore.skipImage();
 
     async function handleSendPreferences() {
-        await imageStore.sendPreferences();
-        imageStore.resetSelection();
-        isCalibrating = false;
-        calibrated = true;
-    }
+    await imageStore.sendPreferences();
+    imageStore.resetSelection();
+    isCalibrating = false;
+    calibrated = true;
+    imageStore.setCalibrated(true); // Ajout
+}
+
 </script>
 
 <main class="main-content">
@@ -62,14 +64,23 @@
                     onLike={likeImage}
                     onSkip={skipImage}
                 />
-            {:else}
+                {:else}
                 <p>Vous avez parcouru toutes les images.</p>
-                <Button 
-                    on:click={handleSendPreferences} 
-                    class="send-preferences-button"
-                    disabled={$imageStore.isSending}>
-                    { $imageStore.isSending ? "Envoi en cours..." : "Envoyer les préférences" }
-                </Button>
+            
+                {#if !calibrated}
+                    <Button 
+                        on:click={handleSendPreferences} 
+                        class="send-preferences-button"
+                        disabled={$imageStore.isSending}>
+                        { $imageStore.isSending ? "Envoi en cours..." : "Envoyer les préférences" }
+                    </Button>
+                {:else}
+                    <Button 
+                        on:click={startCalibration} 
+                        class="restart-reco-button">
+                        Relancer les recommandations
+                    </Button>
+                {/if}
             {/if}
     
 			<Message message={$imageStore.resultMessage} />
