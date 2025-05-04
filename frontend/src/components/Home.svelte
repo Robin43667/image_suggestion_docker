@@ -29,7 +29,13 @@
 
 	const likeImage = () => imageStore.likeImage();
 	const skipImage = () => imageStore.skipImage();
-	const sendPreferences = () => imageStore.sendPreferences();
+
+    async function handleSendPreferences() {
+        await imageStore.sendPreferences();
+        imageStore.resetSelection();
+        isCalibrating = false;
+        calibrated = true;
+    }
 </script>
 
 <main class="main-content">
@@ -53,7 +59,7 @@
             {:else}
                 <p>Vous avez parcouru toutes les images.</p>
                 <Button 
-                    on:click={sendPreferences} 
+                    on:click={handleSendPreferences} 
                     class="send-preferences-button"
                     disabled={$imageStore.isSending}>
                     { $imageStore.isSending ? "Envoi en cours..." : "Envoyer les préférences" }

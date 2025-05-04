@@ -2,3 +2,4 @@ Flask==2.1.2
 requests==2.26.0
 mysql-connector-python==8.0.28
 werkzeug==2.0.3
+redis

@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import logging
 import mysql.connector
 import json
+import redis
 from collections import Counter
 
 app = Flask(__name__)
@@ -23,6 +24,15 @@ DB_HOST = "mariadb"
 DB_USER = "root"
 DB_PASSWORD = "root"
 DB_NAME = "imageDB"
+
+
+# Connexion à Redis (en utilisant le nom du service Docker : "redis")
+r = redis.Redis(host='redis', port=6379, decode_responses=True)
+
+def notify_user_updated(user_id):
+    logger.info("redis publish")
+    r.publish('user.updated', str(user_id))
+
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -123,6 +133,7 @@ def profile_user():
         conn.commit()
 
         logger.info(f"Profil enregistré pour {username}")
+        notify_user_updated(user_id=username)
 
         # Mise à jour de l'utilisateur : set calibrated = 1
         cursor.execute("""

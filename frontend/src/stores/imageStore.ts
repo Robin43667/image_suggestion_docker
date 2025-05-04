@@ -122,7 +122,6 @@ function createImageStore() {
                     isSending: false
                 }));
 
-                self.fetchImages();
             } catch (error) {
                 console.error('Erreur lors de l\'envoi des préférences:', error);
                 update(state => ({
