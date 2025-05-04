@@ -21,11 +21,17 @@
 		: "Calibrez votre profil pour continuer";
 	$: buttonText = calibrated ? "Reprendre" : "Calibrer";
 
-	function startCalibration() {
-		isCalibrating = true;
-		imageStore.setUsername(username);
-		imageStore.fetchImages();
-	}
+    function startCalibration() {
+        isCalibrating = true;
+        imageStore.setUsername(username);
+
+        if (calibrated) {
+            imageStore.fetchRecommendedImages();
+        } else {
+            imageStore.fetchCalibrationImages();
+        }
+    }
+
 
 	const likeImage = () => imageStore.likeImage();
 	const skipImage = () => imageStore.skipImage();

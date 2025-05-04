@@ -57,6 +57,32 @@ function createImageStore() {
                 }));
             }
         },
+        fetchCalibrationImages: async () => {
+            update(state => ({ ...state, isLoading: true, resultMessage: '' }));
+            try {
+                const data = await imageService.fetchCalibrationImages();
+                if (data.images && data.images.length > 0) {
+                    update(state => ({
+                        ...state,
+                        images: data.images,
+                        isLoading: false
+                    }));
+                } else {
+                    update(state => ({
+                        ...state,
+                        isLoading: false,
+                        resultMessage: 'Aucune image de calibration disponible'
+                    }));
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des images de calibration:', error);
+                update(state => ({
+                    ...state,
+                    isLoading: false,
+                    resultMessage: 'Erreur lors du chargement des images de calibration'
+                }));
+            }
+        },        
         likeImage: () => {
             update(state => {
                 if (state.currentIndex < state.images.length) {
@@ -83,6 +109,42 @@ function createImageStore() {
         setUsername: (name: string) => {
             update(state => ({ ...state, username: name }));
           },
+        
+          fetchRecommendedImages: async () => {
+            let currentUsername = '';
+            
+            // Lire la valeur actuelle du store (sans réactivité)
+            const unsubscribe = self.subscribe(state => {
+                currentUsername = state.username;
+            });
+            unsubscribe(); // On désabonne tout de suite après avoir lu
+        
+            update(state => ({ ...state, isLoading: true, resultMessage: '' }));
+            try {
+                const data = await imageService.fetchRecommendedImages(currentUsername);
+                if (data.recommendation) {
+                    update(state => ({
+                        ...state,
+                        images: [data.recommendation],  // on l'encapsule dans un tableau
+                        isLoading: false
+                    }));
+                } else {
+                    update(state => ({
+                        ...state,
+                        isLoading: false,
+                        resultMessage: 'Aucune image recommandée disponible'
+                    }));
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des recommandations:', error);
+                update(state => ({
+                    ...state,
+                    isLoading: false,
+                    resultMessage: 'Erreur lors du chargement des recommandations'
+                }));
+            }
+        }
+,        
                 
         sendPreferences: async () => {
             let currentLikedImages: string[] = [];
