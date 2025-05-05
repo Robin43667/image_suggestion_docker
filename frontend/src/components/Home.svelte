@@ -1,61 +1,61 @@
 <!-- components/Home.svelte -->
 <script lang="ts">
-	import Card from './ui/Card.svelte';
-	import Button from './ui/Button.svelte';
-	import ImageViewer from './ImageViewer.svelte';
-	import Message from './Message.svelte';
-
-	import { imageStore } from '../stores/imageStore';
-	import { onDestroy } from 'svelte';
-
-	export let username: string;
-	export let calibrated: boolean;
-
-	let isCalibrating = false;
-
-	let unsubscribe = imageStore.subscribe(() => {});
-	onDestroy(unsubscribe);
-
-	$: headerText = calibrated 
-		? "Votre profil est calibré, vous pouvez continuer"
-		: "Calibrez votre profil pour continuer";
-	$: buttonText = calibrated ? "Reprendre" : "Calibrer";
+    import Card from './ui/Card.svelte';
+    import Button from './ui/Button.svelte';
+    import ImageViewer from './ImageViewer.svelte';
+    import Message from './Message.svelte';
+    import { authStore } from '../stores/authStore';
+    import { imageStore } from '../stores/imageStore';
+    import { onDestroy } from 'svelte';
+    
+    export let username: string;
+    export let calibrated: boolean;
+    let isCalibrating = false;
+    
+    $: { username = $authStore.username; calibrated = $authStore.calibrated; }
+    
+    let unsubscribe = imageStore.subscribe(() => {});
+    onDestroy(unsubscribe);
+    
+    $: headerText = calibrated
+        ? "Votre profil est calibré, vous pouvez continuer"
+        : "Calibrez votre profil pour continuer";
+    $: buttonText = calibrated ? "Reprendre" : "Calibrer";
+    
     function startCalibration() {
-    isCalibrating = true;
-    imageStore.setUsername(username);
-    imageStore.setCalibrated(calibrated); // Ajout important
-
-    if (calibrated) {
-        imageStore.fetchRecommendedImages();
-    } else {
-        imageStore.fetchCalibrationImages();
+        isCalibrating = true;
+        imageStore.setUsername(username);
+        imageStore.setCalibrated(calibrated);
+        if (calibrated) {
+            imageStore.fetchRecommendedImages();
+        } else {
+            imageStore.fetchCalibrationImages();
+        }
     }
-}
-
-
-	const likeImage = () => imageStore.likeImage();
-	const skipImage = () => imageStore.skipImage();
-
+    
+    const likeImage = () => imageStore.likeImage();
+    const skipImage = () => imageStore.skipImage();
+    
     async function handleSendPreferences() {
-    await imageStore.sendPreferences();
-    imageStore.resetSelection();
-    isCalibrating = false;
-    calibrated = true;
-    imageStore.setCalibrated(true); // Ajout
-}
-
+        await imageStore.sendPreferences();
+        
+        authStore.setCalibrated(true);
+        
+        imageStore.resetSelection();
+        isCalibrating = false;
+    }
 </script>
 
 <main class="main-content">
-	{#if !isCalibrating}
-		<Card>
-			<h1>{headerText}</h1>
-			<Button on:click={startCalibration} class="start-button">{buttonText}</Button>
-		</Card>
-	{:else}
-		{#if $imageStore.isLoading}
-			<p>Chargement des images...</p>
-		{:else}
+    {#if !isCalibrating}
+        <Card>
+            <h1>{headerText}</h1>
+            <Button on:click={startCalibration} class="start-button">{buttonText}</Button>
+        </Card>
+    {:else}
+        {#if $imageStore.isLoading}
+            <p>Chargement des images...</p>
+        {:else}
             {#if $imageStore.images.length > 0 && $imageStore.currentIndex < $imageStore.images.length}
                 <ImageViewer
                     currentImage={$imageStore.images[$imageStore.currentIndex]}
@@ -66,26 +66,26 @@
                 />
                 {:else}
                 <p>Vous avez parcouru toutes les images.</p>
-            
+           
                 {#if !calibrated}
-                    <Button 
-                        on:click={handleSendPreferences} 
+                    <Button
+                        on:click={handleSendPreferences}
                         class="send-preferences-button"
                         disabled={$imageStore.isSending}>
                         { $imageStore.isSending ? "Envoi en cours..." : "Envoyer les préférences" }
                     </Button>
                 {:else}
-                    <Button 
-                        on:click={startCalibration} 
+                    <Button
+                        on:click={startCalibration}
                         class="restart-reco-button">
                         Relancer les recommandations
                     </Button>
                 {/if}
             {/if}
-    
-			<Message message={$imageStore.resultMessage} />
-		{/if}
-	{/if}
+   
+            <Message message={$imageStore.resultMessage} />
+        {/if}
+    {/if}
 </main>
 
 <style>

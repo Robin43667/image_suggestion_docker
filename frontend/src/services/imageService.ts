@@ -1,5 +1,4 @@
 // services/imageService.ts
-
 export async function fetchImages() {
   const response = await fetch('/list-images');
   return await response.json();

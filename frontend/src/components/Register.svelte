@@ -1,100 +1,101 @@
+<!-- components/register.svelte -->
 <script>
-	import { createEventDispatcher } from 'svelte';
-	import { register } from '../lib/api';
-	import { setAuthCookie } from '../lib/auth';
-	import Button from './ui/Button.svelte';
-	import Card from './ui/Card.svelte';
-	import InputField from './ui/InputField.svelte';
-	
-	const dispatch = createEventDispatcher();
-	
-	let username = '';
-	let password = '';
-	let confirmPassword = '';
-	let isLoading = false;
-	let errorMessage = '';
-	
-	async function handleSubmit() {
-		if (!username || !password || !confirmPassword) {
-			errorMessage = 'Veuillez remplir tous les champs';
-			return;
-		}
-		
-		if (password !== confirmPassword) {
-			errorMessage = 'Les mots de passe ne correspondent pas';
-			return;
-		}
-		
-		isLoading = true;
-		errorMessage = '';
-		
-		try {
-			const response = await register(username, password);
-			
-			if (response.status === 'success') {
-				setAuthCookie(username);
-				dispatch('authSuccess', { username });
-			} else {
-				errorMessage = response.message || 'Erreur lors de l\'inscription';
-			}
-		} catch (error) {
-			errorMessage = 'Erreur de connexion au serveur';
-			console.error(error);
-		} finally {
-			isLoading = false;
-		}
-	}
-	
-	function navigateToLogin() {
-		dispatch('navigateToLogin');
-	}
+    import { createEventDispatcher } from 'svelte';
+    import { register } from '../lib/api';
+    import { authStore } from '../stores/authStore';
+    import Button from './ui/Button.svelte';
+    import Card from './ui/Card.svelte';
+    import InputField from './ui/InputField.svelte';
+
+    const dispatch = createEventDispatcher();
+
+    let username = '';
+    let password = '';
+    let confirmPassword = '';
+    let isLoading = false;
+    let errorMessage = '';
+
+    async function handleSubmit() {
+        if (!username || !password || !confirmPassword) {
+            errorMessage = 'Veuillez remplir tous les champs';
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            errorMessage = 'Les mots de passe ne correspondent pas';
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = '';
+
+        try {
+            const response = await register(username, password);
+
+            if (response.status === 'success') {
+                authStore.login(username, false); 
+                dispatch('authSuccess', { username, calibrated: false });
+            } else {
+                errorMessage = response.message || 'Erreur lors de l\'inscription';
+            }
+        } catch (error) {
+            errorMessage = 'Erreur de connexion au serveur';
+            console.error(error);
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    function navigateToLogin() {
+        dispatch('navigateToLogin');
+    }
 </script>
 
 <Card>
-	<div class="register-form">
-		<h1>Inscription</h1>
-		
-		{#if errorMessage}
-			<div class="error-message">{errorMessage}</div>
-		{/if}
-		
-		<form on:submit|preventDefault={handleSubmit}>
-			<InputField
-				label="Nom d'utilisateur"
-				type="text"
-				bind:value={username}
-				placeholder="Choisissez un nom d'utilisateur"
-				disabled={isLoading}
-			/>
-			
-			<InputField
-				label="Mot de passe"
-				type="password"
-				bind:value={password}
-				placeholder="Choisissez un mot de passe"
-				disabled={isLoading}
-			/>
-			
-			<InputField
-				label="Confirmer le mot de passe"
-				type="password"
-				bind:value={confirmPassword}
-				placeholder="Confirmez votre mot de passe"
-				disabled={isLoading}
-			/>
-			
-			<div class="form-actions">
-				<Button type="submit" disabled={isLoading}>
-					{isLoading ? 'Inscription en cours...' : 'S\'inscrire'}
-				</Button>
-			</div>
-		</form>
-		
-		<div class="link-section">
-			<p>Vous avez déjà un compte ?</p>
-			<button class="link-button" on:click={navigateToLogin}>Se connecter</button>
-		</div>
-	</div>
+    <div class="register-form">
+        <h1>Inscription</h1>
+
+        {#if errorMessage}
+            <div class="error-message">{errorMessage}</div>
+        {/if}
+
+        <form on:submit|preventDefault={handleSubmit}>
+            <InputField
+                label="Nom d'utilisateur"
+                type="text"
+                bind:value={username}
+                placeholder="Choisissez un nom d'utilisateur"
+                disabled={isLoading}
+            />
+
+            <InputField
+                label="Mot de passe"
+                type="password"
+                bind:value={password}
+                placeholder="Choisissez un mot de passe"
+                disabled={isLoading}
+            />
+
+            <InputField
+                label="Confirmer le mot de passe"
+                type="password"
+                bind:value={confirmPassword}
+                placeholder="Confirmez votre mot de passe"
+                disabled={isLoading}
+            />
+
+            <div class="form-actions">
+                <Button type="submit" disabled={isLoading}>
+                    {isLoading ? 'Inscription en cours...' : 'S\'inscrire'}
+                </Button>
+            </div>
+        </form>
+
+        <div class="link-section">
+            <p>Vous avez déjà un compte ?</p>
+            <button class="link-button" on:click={navigateToLogin}>Se connecter</button>
+        </div>
+    </div>
 </Card>
 
 <style>
@@ -150,4 +151,4 @@
 		color: #7300ff;
 		text-decoration: underline;
 	}
-</style>
+</style> 
