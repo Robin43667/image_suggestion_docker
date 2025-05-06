@@ -6,6 +6,11 @@ DB_USER = "root"
 DB_PASSWORD = "root"
 DB_NAME = "imageDB"
 
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
+DATA_ANALYZER_URL = "http://data-analyzer:5003"
+
+
 # API endpoints
 SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
 DATA_COLLECTOR_1_URL = "http://data-collector-1:5001/collect"

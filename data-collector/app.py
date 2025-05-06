@@ -3,6 +3,7 @@ import os
 import requests
 from mysql.connector import connect, Error
 from PIL import Image
+import hashlib
 
 app = Flask(__name__)
 
@@ -15,6 +16,12 @@ TARGET_WIDTH = 512
 TARGET_HEIGHT = 512
 IMAGE_QUALITY = 85  # Compression JPEG
 MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024  
+
+
+def generate_filename(url, prefix):
+    h = hashlib.sha256(url.encode()).hexdigest()
+    return f"{prefix}_{h[:10]}.jpg"
+
 
 def get_db_connection():
     return connect(
@@ -65,7 +72,12 @@ def collect():
                 print(f"Ignorée (trop grosse - {int(content_length) / (1024*1024):.2f} Mo) : {url_image}")
                 continue
 
-            filename = os.path.join(dossier_telechargement, f"{prefix}_{i+1}.jpg")
+            # filename = os.path.join(dossier_telechargement, f"{prefix}_{i+1}.jpg")
+            filename = os.path.join(dossier_telechargement, generate_filename(url_image, prefix))
+            if os.path.exists(filename):
+                print(f"Ignorée (déjà présente) : {filename}")
+                continue
+
             total_bytes = 0
             with open(filename, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):

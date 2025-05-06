@@ -207,7 +207,6 @@
 
 
 
-
 from flask import Flask, jsonify, request
 import mysql.connector
 from mysql.connector import Error
@@ -276,7 +275,6 @@ def get_recommendations(user_id):
     if data:
         recommendations = json.loads(data)
 
-        # 👉 CHANGEMENT ICI : on n'ajoute que la première image dans l'historique
         if recommendations:
             shown_image = recommendations[0]
             history_key = f"history:{user_id}"
