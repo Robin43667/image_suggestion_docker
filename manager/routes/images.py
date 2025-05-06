@@ -2,7 +2,7 @@
 
 from flask import Blueprint, jsonify, request, send_from_directory
 from services.image_service import list_all_images, encode_image
-from config import IMAGE_DIRECTORY, USER_PROFILER_URL
+from config import IMAGE_DIRECTORY, USER_PROFILER_URL, IMAGE_RECOMMENDER_URL
 import requests
 
 images_bp = Blueprint('images', __name__)
@@ -73,3 +73,44 @@ def image_for_calibration():
     except Exception as e:
         print(f"Erreur lors de la récupération des images de calibration : {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# import logging
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+
+@images_bp.route("/dislike-image", methods=["POST"])
+def dislike_image():
+    # logger.info("DISLIKE")
+    data = request.get_json()
+    username = data.get("username", "anonymous")
+    image = data.get("image")
+    
+    if not image:
+        return jsonify({
+            "status": "error",
+            "message": "Aucune image fournie"
+        }), 400
+    
+    try:
+        # URL du recommender à mettre dans votre fichier config
+        recommender_url = IMAGE_RECOMMENDER_URL + f"/dislike/{username}"
+        
+        response = requests.post(
+            recommender_url,
+            json={"image": image}
+        )
+        
+        response.raise_for_status()
+        result = response.json()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Image marquée comme non aimée",
+            "result": result
+        })
+    except Exception as e:
+        print(f"Erreur lors du signalement de l'image non aimée : {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"Erreur lors du signalement de l'image non aimée : {str(e)}"
+        }), 500

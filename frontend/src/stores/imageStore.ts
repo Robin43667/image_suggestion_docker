@@ -110,7 +110,16 @@ function createImageStore() {
         
         skipImage: async () => {
             let calibrated = false;
-            const unsubscribe = self.subscribe(state => { calibrated = state.calibrated; });
+            let currentUsername = '';
+            let currentImage: EncodedImage | null = null;
+        
+            const unsubscribe = self.subscribe(state => {
+                calibrated = state.calibrated;
+                currentUsername = state.username;
+                if (state.currentIndex < state.images.length) {
+                    currentImage = state.images[state.currentIndex];
+                }
+            });
             unsubscribe();
         
             update(state => {
@@ -123,18 +132,18 @@ function createImageStore() {
                 return state;
             });
         
-            if (calibrated) {
-                await self.sendPreferences();
+            if (calibrated && currentImage) {
+                await imageService.sendDislikedImage({
+                    username: currentUsername || 'anonymous',
+                    image: currentImage.filename
+                });
+        
+                await self.fetchRecommendedImages();
+            } else if (calibrated) {
                 await self.fetchRecommendedImages();
             }
-        },
-        
-        setUsername: (name: string) => {
-            update(state => ({ ...state, username: name }));
-          },
-          setCalibrated: (status: boolean) => {
-            update(state => ({ ...state, calibrated: status }));
-        },
+        }
+,        
         
         
         fetchRecommendedImages: async () => {
@@ -175,7 +184,12 @@ function createImageStore() {
             }
         }
 ,        
-                
+setUsername: (name: string) => {
+    update(state => ({ ...state, username: name }));
+  },
+  setCalibrated: (status: boolean) => {
+    update(state => ({ ...state, calibrated: status }));
+}, 
         sendPreferences: async () => {
             let currentLikedImages: string[] = [];
             let currentUsername = '';

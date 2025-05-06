@@ -11,7 +11,7 @@ def get_user_recommendation(user_id):
     """Route appelée par le frontend : renvoie l'image recommandée (encodée) pour un utilisateur"""
     try:
         # Appel au microservice image recommender
-        recommender_url = f"{IMAGE_RECOMMENDER_URL}/{user_id}"
+        recommender_url = f"{IMAGE_RECOMMENDER_URL}/recommend/{user_id}"
         response = requests.get(recommender_url)
         response.raise_for_status()
         result = response.json()

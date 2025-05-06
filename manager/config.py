@@ -12,6 +12,7 @@ DATA_COLLECTOR_1_URL = "http://data-collector-1:5001/collect"
 DATA_COLLECTOR_2_URL = "http://data-collector-2:5001/collect"
 USER_PROFILER_URL = "http://user-profiler:5000/profile"
 IMAGE_RECOMMENDER_URL = "http://image-recommender:5005/recommend"
+IMAGE_RECOMMENDER_URL = "http://image-recommender:5005"
 
 # Paths
 IMAGE_DIRECTORY = "/app/images/"

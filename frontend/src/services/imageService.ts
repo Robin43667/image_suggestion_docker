@@ -30,3 +30,25 @@ export async function sendUserPreferences(payload: UserPreferencesPayload) {
 
   return await response.json();
 }
+
+// Interface pour les données de dislike
+interface DislikeData {
+  username: string;
+  image: string;
+}
+
+export async function sendDislikedImage(data: DislikeData) {
+  const response = await fetch('/dislike-image', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+  });
+ 
+  if (!response.ok) {
+      throw new Error('Échec de l\'envoi de l\'image non aimée');
+  }
+ 
+  return await response.json();
+}
