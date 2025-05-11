@@ -1,15 +1,18 @@
 import requests
-from config import SPARQL_ENDPOINT, SPARQL_QUERY
+from config import SPARQL_ENDPOINT, SPARQL_QUERIES
 
 def fetch_image_urls():
-    try:
-        response = requests.get(SPARQL_ENDPOINT, params={"query": SPARQL_QUERY, "format": "json"})
-        response.raise_for_status()
-        data = response.json()
-        return [binding["image"]["value"] for binding in data["results"]["bindings"]]
-    except Exception as e:
-        print(f"Erreur SPARQL : {e}")
-        return []
+    all_urls = []
+    for query in SPARQL_QUERIES:
+        try:
+            response = requests.get(SPARQL_ENDPOINT, params={"query": query, "format": "json"})
+            response.raise_for_status()
+            data = response.json()
+            urls = [binding["image"]["value"] for binding in data["results"]["bindings"]]
+            all_urls.extend(urls)
+        except Exception as e:
+            print(f"Erreur SPARQL pour une requête : {e}")
+    return list(set(all_urls))  # retire les doublons
 
 def split_list(lst, n):
     k, m = divmod(len(lst), n)

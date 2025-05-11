@@ -7,6 +7,7 @@
     import Button from './components/ui/Button.svelte';
     import { authStore } from './stores/authStore';
     import { checkAuthentication } from './lib/auth';
+    import Dataset from './components/Dataset.svelte';
     import { derived } from 'svelte/store';
    
     let currentRoute = 'login';
@@ -67,7 +68,7 @@
         <Button on:click={() => navigateTo('home')}>Profil</Button>
         <Button on:click={() => console.log('Documentation')}>Documentation</Button>
         <Button on:click={() => console.log('API')}>API</Button>
-        <Button on:click={() => console.log('Dataset')}>Dataset</Button>
+        <Button on:click={() => navigateTo('dataset')}>Dataset</Button>
         <Button on:click={() => console.log('Tasks')}>Tasks</Button>
         <button class="avatar-button logout-button" on:click={handleLogout} title="Déconnexion">
           <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -99,6 +100,11 @@
       <div class="container">
         <Home username={$authStore.username} calibrated={$authStore.calibrated} />
       </div>
+    {:else if currentRoute === 'dataset'}
+      <div class="container">
+        <Dataset />
+      </div>
+    
     {/if}
   </div>
  

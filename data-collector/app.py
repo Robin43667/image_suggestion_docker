@@ -35,12 +35,37 @@ def save_image_url_to_db(image_url):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+
+        # Vérifie si la table existe
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM information_schema.tables 
+            WHERE table_schema = %s AND table_name = 'images'
+        """, (DB_NAME,))
+        table_exists = cursor.fetchone()[0]
+
+        # Si la table n'existe pas, on la crée
+        if table_exists == 0:
+            cursor.execute("""
+                CREATE TABLE images (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    url TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+            print("Table 'images' créée.")
+
+        # Insertion de l'URL
         cursor.execute("INSERT INTO images (url) VALUES (%s)", (image_url,))
         conn.commit()
+
         cursor.close()
         conn.close()
+
     except Error as e:
         print(f"Erreur DB : {e}")
+
 
 def resize_image(image_path):
     try:

@@ -1,11 +1,3 @@
-# import threading
-# from worker.auto_collector import start_collection_cycle
-# from worker.listener import listen_to_redis
-
-# if __name__ == "__main__":
-#     threading.Thread(target=start_collection_cycle, daemon=True).start()
-#     listen_to_redis()
-
 import threading
 from flask import Flask
 from routes.auth import auth_bp

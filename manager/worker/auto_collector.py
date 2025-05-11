@@ -44,4 +44,4 @@ def start_collection_cycle():
         else:
             print("Erreur lors de l'envoi aux collecteurs")
 
-        time.sleep(30)  # Pause avant de recommencer le cycle
+        time.sleep(10)  # Pause avant de recommencer le cycle

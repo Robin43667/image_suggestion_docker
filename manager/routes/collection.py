@@ -15,7 +15,7 @@ def start_collection():
         if not urls:
             return jsonify({"status": "failure", "message": "Aucune URL récupérée"}), 500
         
-        urls_sample = random.sample(urls, min(50, len(urls)))
+        urls_sample = random.sample(urls, min(20, len(urls)))
         urls1, urls2 = split_list(urls_sample, 2)
         print("Envoi aux collecteurs...")
 

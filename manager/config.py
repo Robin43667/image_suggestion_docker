@@ -23,11 +23,41 @@ IMAGE_RECOMMENDER_URL = "http://image-recommender:5005"
 IMAGE_DIRECTORY = "/app/images/"
 
 # Queries
-SPARQL_QUERY = """
-SELECT ?image
-WHERE {
-  ?nebuleuse wdt:P31/wdt:P279* wd:Q204194 .
-  ?nebuleuse wdt:P18 ?image .
-}
-LIMIT 100
-"""
+# SPARQL_QUERY = """
+# SELECT ?image
+# WHERE {
+#   ?nebuleuse wdt:P31/wdt:P279* wd:Q204194 .
+#   ?nebuleuse wdt:P18 ?image .
+# }
+# LIMIT 100
+# """
+
+
+
+
+SPARQL_QUERIES = [
+    """
+    SELECT ?image
+    WHERE {
+      ?nebuleuse wdt:P31/wdt:P279* wd:Q204194 .
+      ?nebuleuse wdt:P18 ?image .
+    }
+    LIMIT 100
+    """,
+    """
+    SELECT ?image
+    WHERE {
+      ?glacier wdt:P31/wdt:P279* wd:Q35666 .
+      ?glacier wdt:P18 ?image .
+    }
+    LIMIT 100
+    """,
+    """
+    SELECT ?image
+    WHERE {
+      ?ville wdt:P31/wdt:P279* wd:Q515 .
+      ?ville wdt:P18 ?image .
+    }
+    LIMIT 100
+    """
+]
