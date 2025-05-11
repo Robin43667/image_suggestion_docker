@@ -24,37 +24,6 @@ def register():
         logger.error(f"Erreur lors de l'enregistrement : {e}")
         return jsonify({"status": "error", "message": "Erreur serveur"}), 500
 
-# @auth_bp.route("/login", methods=["POST"])
-# def login():
-#     data = request.get_json()
-#     username = data.get("username")
-#     password = data.get("password")
-    
-#     if not username or not password:
-#         return jsonify({"status": "error", "message": "Username et password requis"}), 400
-    
-#     try:
-#         create_users_table()
-#         result, message, status_code, user_data = verify_user(username, password)
-        
-#         response_data = {
-#             "status": result,
-#             "message": message
-#         }
-        
-#         if user_data:
-#             response_data["user"] = user_data
-            
-#         return jsonify(response_data), status_code
-        
-#     except Exception as e:
-#         logger.error(f"Erreur lors de la connexion : {e}")
-#         return jsonify({"status": "error", "message": "Erreur serveur"}), 500
-
-
-
-
-
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()

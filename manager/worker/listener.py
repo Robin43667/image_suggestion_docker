@@ -1,7 +1,6 @@
 import redis
 import requests
 from config import DATA_ANALYZER_URL
-from worker.auto_collector import start_collection_cycle
 
 r = redis.Redis(host="redis", port=6379, decode_responses=True)
 

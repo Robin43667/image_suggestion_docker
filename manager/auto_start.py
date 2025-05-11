@@ -1,7 +1,6 @@
 import threading
 from flask import Flask
 from routes.auth import auth_bp
-from routes.collection import collection_bp
 from routes.images import images_bp
 from routes.recommend import recommend_bp
 from worker.auto_collector import start_collection_cycle
@@ -14,7 +13,6 @@ def create_app():
     setup_logger()
     
     app.register_blueprint(auth_bp)
-    app.register_blueprint(collection_bp)
     app.register_blueprint(images_bp)
     app.register_blueprint(recommend_bp)
     
