@@ -7,6 +7,7 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
+    create_users_table()
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
@@ -15,7 +16,6 @@ def register():
         return jsonify({"status": "error", "message": "Username et password requis"}), 400
     
     try:
-        create_users_table()
         result, message, status_code = register_user(username, password)
         
         return jsonify({"status": result, "message": message}), status_code

@@ -80,6 +80,7 @@ def average_colors(color_lists, group_size=5):
 
 @app.route("/profile", methods=["POST"])
 def profile_user():
+    create_profiles_table()
     data = request.get_json()
     username = data.get("username", "anonymous")
     logger.info(f"Username reçu dans le profil: {username}")  
