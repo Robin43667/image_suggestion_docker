@@ -62,23 +62,18 @@ Le système utilise plusieurs mécanismes de communication :
 ### 1. Acquisition de Données (Data Collectors)
 - **Fonctionnalité** : Télécharge automatiquement des images depuis Wikidata
 - **Parallélisation** : Deux collecteurs travaillent en parallèle
-- **MapReduce** : Division des URLs entre collecteurs pour téléchargement simultané
-- **Automatisation** : Télécharge 5 images toutes les 10 secondes
 
 ### 2. Analyse de Données (Data Analyzer)
 - **Fonctionnalité** : Extraction de métadonnées (couleurs, dimensions, EXIF)
-- **MapReduce** : Application de la fonction d'analyse sur chaque image en parallèle
-- **PySpark** : Utilisation de RDD pour le traitement distribué
 
 ### 3. Profilage Utilisateur (User Profiler)
 - **Fonctionnalité** : Création et fusion des profils basés sur les préférences
-- **MapReduce** : Agrégation des caractéristiques des images aimées
-- **Lambda Expressions** : Calcul des moyennes et tags favoris
 
 ### 4. Recommandation (Image Recommender)
 - **Fonctionnalité** : Génération de recommandations personnalisées
-- **PySpark MapReduce** : Calcul de similarité sur l'ensemble du dataset
-- **Optimisation** : System de cache Redis pour les réponses rapides
+- **Lambda Expressions** : Calcul des moyennes et tags favoris
+- **PySpark MapReduce** : Calcul de similarité sur l'ensemble du dataset avec le profil utilisateur
+- **Optimisation** : System de stockage Redis pour les réponses rapides
 
 ## Démarrage du Projet
 
@@ -154,7 +149,6 @@ docker-compose up
 
 - Logs structurés pour chaque service
 - Redis PubSub pour les événements temps réel
-- Métriques de performance intégrées
 
 ## Points Forts
 
