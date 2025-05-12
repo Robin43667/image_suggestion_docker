@@ -63,11 +63,27 @@ Le système utilise plusieurs mécanismes de communication :
 - **Fonctionnalité** : Télécharge automatiquement des images depuis Wikidata
 - **Parallélisation** : Deux collecteurs travaillent en parallèle
 
+Les images sont référencées uniquement par leur nom dans la base de données, tandis que les fichiers images eux-mêmes sont stockés dans le volume partagé Docker, permettant ainsi leur accès par tous les services concernés
+#### Image dans la base de données:
+![Intégration en base](schema/image1.png)
+
+#### Image dans le volume :
+![Image dans le volume](schema/volume.png)
+
 ### 2. Analyse de Données (Data Analyzer)
 - **Fonctionnalité** : Extraction de métadonnées (couleurs, dimensions, EXIF)
 
+Une fois les images téléchargées, elles sont automatiquement analysées par le service Data Analyzer, et les métadonnées extraites (couleurs dominantes, dimensions, tags) sont ensuite stockées dans la base de données MariaDB
+#### Stockage Métadonnées :
+![Intégration en base](schema/image2.png)
+
 ### 3. Profilage Utilisateur (User Profiler)
 - **Fonctionnalité** : Création et fusion des profils basés sur les préférences
+
+Lorsque l'utilisateur termine le calibrage de son profil, le système génère et stocke une empreinte de ses préférences visuelles sous forme de données structurées comprenant la moyenne des dimensions (hauteur et largeur) des images appréciées, leurs couleurs dominantes agrégées, ainsi que les tags les plus fréquemment associés à ses choix.
+
+#### Sotckage profil utilisateur :
+![Intégration en base](schema/image3.png)
 
 ### 4. Recommandation (Image Recommender)
 - **Fonctionnalité** : Génération de recommandations personnalisées
@@ -149,7 +165,7 @@ docker-compose up
 
 - Logs structurés pour chaque service
 - Redis PubSub pour les événements temps réel
-
+ 
 ## Points Forts
 
 1. **Architecture Microservices** : Séparation claire des responsabilités
