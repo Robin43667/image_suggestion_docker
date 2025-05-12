@@ -54,7 +54,9 @@
         </Card>
     {:else}
         {#if $imageStore.isLoading}
-            <p>Chargement des images...</p>
+            <p class="loading-message">Réentrainement du modèle, chargement des nouvelles recommandations...</p>
+
+
         {:else}
             {#if $imageStore.images.length > 0 && $imageStore.currentIndex < $imageStore.images.length}
                 <ImageViewer
@@ -113,4 +115,20 @@
         padding: 0.75rem 1rem;
         font-size: 1.1rem;
     }
+
+    .loading-message {
+    font-size: 2rem; 
+    color: rgb(0, 0, 0);
+    padding: 1rem 1rem;
+    border-radius: 6px;
+    text-align: center;
+    margin: 1rem 0;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.85; }
+    100% { transform: scale(1); opacity: 1; }
+}
 </style>

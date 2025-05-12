@@ -85,12 +85,12 @@ function createImageStore() {
                     resultMessage: 'Erreur lors du chargement des images de calibration'
                 }));
             }
-        },        
+        },
         likeImage: async () => {
             let calibrated = false;
             const unsubscribe = self.subscribe(state => { calibrated = state.calibrated; });
             unsubscribe();
-        
+
             update(state => {
                 if (state.currentIndex < state.images.length) {
                     return {
@@ -101,18 +101,22 @@ function createImageStore() {
                 }
                 return state;
             });
-        
+
             if (calibrated) {
-                await self.sendPreferences(); // envoie auto
-                await self.fetchRecommendedImages(); // récup reco auto
+                update(state => ({ ...state, isLoading: true, resultMessage: '' }));
+                await self.sendPreferences();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await self.fetchRecommendedImages();
+
             }
-        },
-        
+        }
+        ,
+
         skipImage: async () => {
             let calibrated = false;
             let currentUsername = '';
             let currentImage: EncodedImage | null = null;
-        
+
             const unsubscribe = self.subscribe(state => {
                 calibrated = state.calibrated;
                 currentUsername = state.username;
@@ -121,7 +125,7 @@ function createImageStore() {
                 }
             });
             unsubscribe();
-        
+
             update(state => {
                 if (state.currentIndex < state.images.length) {
                     return {
@@ -131,28 +135,28 @@ function createImageStore() {
                 }
                 return state;
             });
-        
+
             if (calibrated && currentImage) {
                 await imageService.sendDislikedImage({
                     username: currentUsername || 'anonymous',
                     image: currentImage.filename
                 });
-        
+
                 await self.fetchRecommendedImages();
             } else if (calibrated) {
                 await self.fetchRecommendedImages();
             }
         }
-,        
-        
-        
+        ,
+
+
         fetchRecommendedImages: async () => {
             let currentUsername = '';
             const unsubscribe = self.subscribe(state => {
                 currentUsername = state.username;
             });
             unsubscribe();
-        
+
             update(state => ({ ...state, isLoading: true, resultMessage: '' }));
             try {
                 const data = await imageService.fetchRecommendedImages(currentUsername);
@@ -183,43 +187,43 @@ function createImageStore() {
                 }));
             }
         }
-,        
-setUsername: (name: string) => {
-    update(state => ({ ...state, username: name }));
-  },
-  setCalibrated: (status: boolean) => {
-    update(state => ({ ...state, calibrated: status }));
-}, 
+        ,
+        setUsername: (name: string) => {
+            update(state => ({ ...state, username: name }));
+        },
+        setCalibrated: (status: boolean) => {
+            update(state => ({ ...state, calibrated: status }));
+        },
         sendPreferences: async () => {
             let currentLikedImages: string[] = [];
             let currentUsername = '';
-            
+
             update(state => {
-              currentLikedImages = state.likedImages.map(img => img.filename);
-              currentUsername = state.username;
-            
-              if (state.likedImages.length === 0) {
+                currentLikedImages = state.likedImages.map(img => img.filename);
+                currentUsername = state.username;
+
+                if (state.likedImages.length === 0) {
+                    return {
+                        ...state,
+                        resultMessage: 'Veuillez liker au moins une image'
+                    };
+                }
+
                 return {
-                  ...state,
-                  resultMessage: 'Veuillez liker au moins une image'
+                    ...state,
+                    isSending: true,
+                    resultMessage: ''
                 };
-              }
-            
-              return {
-                ...state,
-                isSending: true,
-                resultMessage: ''
-              };
             });
-            
+
             if (currentLikedImages.length === 0) return;
-            
+
             try {
-              const result = await imageService.sendUserPreferences({
-                username: currentUsername || 'anonymous',
-                likedImages: currentLikedImages
-              });
-                  
+                const result = await imageService.sendUserPreferences({
+                    username: currentUsername || 'anonymous',
+                    likedImages: currentLikedImages
+                });
+
                 update(state => ({
                     ...state,
                     resultMessage: result.message || 'Préférences envoyées avec succès',
